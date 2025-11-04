@@ -6,6 +6,7 @@ import { useScoreboard } from "../hooks/useScoreboard";
 import ColumnSelectors from "./ColumnSelectors";
 import Board from "./Board";
 import ScoreboardCard from "./Scoreboard";
+import {validator} from "../validator";
 
 export default function FourInLine() {
     const [board, setBoard] = useState<Cell[][]>(() => makeEmptyBoard());
@@ -13,6 +14,7 @@ export default function FourInLine() {
     const [win, setWin] = useState<WinState>({ winner: null, line: [] });
     const [isDraw, setIsDraw] = useState(false);
     const [moves, setMoves] = useState(0);
+    const [moveCols, setMoveCols] = useState<number[]>([]);
     const { score, record, resetScore } = useScoreboard();
     const canPlay = win.winner === null && !isDraw;
     const resetGame = () => {
@@ -21,6 +23,7 @@ export default function FourInLine() {
         setWin({ winner: null, line: [] });
         setIsDraw(false);
         setMoves(0);
+        setMoveCols([]);
     };
 
     const dropInColumn = (col: number) => {
@@ -32,9 +35,9 @@ export default function FourInLine() {
         if (rowToPlace === -1) return;
         const next = board.map(row => row.slice());
         next[rowToPlace][col] = current;
-
         const newMoves = moves + 1;
         setMoves(newMoves);
+        setMoveCols(prev => [...prev, col]);
         const fallDelay = (ROWS - rowToPlace) * 50;
         setTimeout(() => setBoard(next), fallDelay);
         const result = checkWinFrom(next, rowToPlace, col, current);
@@ -77,6 +80,18 @@ export default function FourInLine() {
                 <div className="flex items-center" style={{ gap: 8 }}>
                     <button onClick={resetGame} className="btn">Новая партия</button>
                     <button onClick={resetScore} className="btn btn-danger">Сбросить таблицу</button>
+                    {
+          <button
+            className="btn"
+            onClick={() => {
+              const res = validator(moveCols, COLS, ROWS);
+              const lastKey = `step_${moveCols.length}`;
+              console.log("validator ->", res);
+              console.log("last snapshot ->", res[lastKey]);
+            }}>
+            validator
+          </button>
+                    }
                 </div>
             </header>
 
